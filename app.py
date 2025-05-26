@@ -65,6 +65,59 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# --- Upload multiple CVs ---
+with st.container():
+    st.header("📄 Upload CVs for Comparison")
+
+    uploaded_cvs = st.file_uploader("Upload up to 5 CVs (PDF only)", type="pdf", accept_multiple_files=True)
+
+    if st.button("🤖 Compare & Pick Best Candidate", use_container_width=True):
+        if uploaded_cvs and 2 <= len(uploaded_cvs) <= 5:
+            try:
+                from utils import extract_text_from_pdf  # Ensure this is available in your project
+
+                # Extract text from each uploaded PDF
+                cv_texts = [extract_text_from_pdf(pdf) for pdf in uploaded_cvs]
+
+                # Prepare column mapping based on cv1, cv2...cv5
+                data_dict = {f"cv{i + 1}": text for i, text in enumerate(cv_texts)}
+
+                # Send to TalentRank table
+                result = jamai.add_table_rows(
+                    "action",
+                    p.RowAddRequest(
+                        table_id="TalentRank",
+                        data=[data_dict],
+                        stream=False
+                    )
+                )
+
+                if result.rows:
+                    best_candidate_text = result.rows[0].columns.get("Best_Candidate").text
+                    st.success("🏆 Best Candidate Identified!")
+                    st.markdown(f"**🧠 Best Candidate Summary:**\n\n{best_candidate_text}")
+
+                    # Optional: Downloadable summary report
+                    doc = Document()
+                    doc.add_heading("Best Candidate Summary", level=1)
+                    doc.add_paragraph(best_candidate_text)
+
+                    buffer = BytesIO()
+                    doc.save(buffer)
+                    buffer.seek(0)
+                    st.download_button(
+                        label="📄 Download Summary",
+                        data=buffer,
+                        file_name="Best_Candidate_Summary.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
+                else:
+                    st.error("❌ No result returned from TalentRank.")
+            except Exception as e:
+                st.error(f"⚠️ Error during comparison: {e}")
+        else:
+            st.warning("⚠️ Please upload between 2 to 5 CVs.")
+
 # CV Upload and Job Description Section
 with st.container():
     st.header("📄 Interview Expert")
