@@ -156,8 +156,8 @@ with st.container():
                         doc = Document()
                         doc.add_heading("📘 Interview Expert Report", level=1)                        
                         # Section 1: Summary
-                        doc.add_heading("📝 Candidate Summary", level=2)
-                        doc.add_paragraph(summary.text if summary else 'N/A', style='Normal')
+                        #doc.add_heading("📝 Candidate Summary", level=2)
+                        #doc.add_paragraph(summary.text if summary else 'N/A', style='Normal')
                         # Section 2: Interview Questions (as bullet points if possible)
                         doc.add_heading("💼 Interview Questions", level=2)
                         if generate_questions and generate_questions.text:
